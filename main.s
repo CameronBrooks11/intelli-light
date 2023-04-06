@@ -121,27 +121,34 @@ _detectPpl:
 
 /* Write brightness of light */
 _writeLights:
-{push r4 - r9, lr}
+{push r4 - r9, lr}                              @ push to stack 
 @@ assumption - r10 holds person (1 or 0)
-@@ r5 will hold to value we're writing 
-@@ r4 will hold binary value to write 
 
-ldr r6, DEC_VALUE           @ put address of dec value into r6
-ldr r7, [r6]                @ put dec value into r7
+@@ r5 - hex value value we're writing 
+@@ r4 - will hold binary value we're writing 
+
+@ load in the dec and high brightness values from memory 
+ldr r6, DEC_VALUE           @ put dec value into r7
+ldr r7, [r6]                
+ldr r8, HIGH_BRIGHT         @ put high bright value into r5
+ldr r5, [r8]
 
 @ check if person variable is 0 (ie: if switch is low)
 cmp r10, #0                 @ is person = 0? 
-subeq r5, r7                @ if no person (0), decrement brightness value 
+    @yes
+    subeq r5, r7                @ if no person (0), decrement brightness value 
+    @no - do nothing  
 
-ldr r3, =LOOK_UP_TABLE2     @ put address of lookup table into register 
-lsl r5, #2 					@ account for word offset 
-ldr r4, [r3,r5]             @ shift by the hex value we want to write - gives us a binary code
-ldr r6, GPIO                @ put address of GPIO into register 
-str r4, [r6]                @ write the binary code to the GPIO address (data register is at base so no shift)
+@ actually writing to lights 
+ldr r3, =LOOK_UP_TABLE2         @ put address of lookup table into register 
+lsl r5, #2 					    @ multiply hex value by 4 to account for word offset 
+ldr r4, [r3,r5]                 @ shift by the hex value we want to write - gives us a binary code
+ldr r6, GPIO                    @ put address of GPIO into register 
+str r4, [r6]                    @ write the binary code to the GPIO address (data register is at base so no shift)
 
 @ set the "last state" variable 
 str r10, LAST_STATE 
-@ should branch back to start
+@ branch back to start
 
 {push r4 - r9, lr}
 b main
@@ -161,4 +168,3 @@ HIGH_BRIGHT:    .word
 DEC_VALUE:      .word
 LAST_STATE:     .word
 TODAY_TOTAL_TIME: .word
-CURRENT_TIME:     .word 
