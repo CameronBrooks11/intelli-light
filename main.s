@@ -1,6 +1,7 @@
 .global _main
-
+/* --------------------- */
 /* -----Data Values----- */
+/* --------------------- */
 .data
 @ This is a look up table for writing to the parallel port to display how many lights should be lit up
 LOOKUP_TABLE:  .word 0b0000000000000000, 0b0000000000000001, 0b0000000000000001, 0b0000000000000011, 0b0000000000000111, 0b0000000000001111, 0b0000000000001111,  0b0000000000011111, 0b0000000000111111, 0b0000000001111111, 0b0000000001111111 , 0b0000000011111111, 0b0000000011111111, 0b0000000111111111, 0b0000001111111111, 0b0000001111111111 ,0b0000001111111111 
@@ -8,14 +9,14 @@ LOOKUP_TABLE:  .word 0b0000000000000000, 0b0000000000000001, 0b0000000000000001,
 HEX_TABLE:	.byte 0b00111111, 0b00000110, 0b01011011, 0b01001111, 0b01100110, 0b01101101, 0b01111101, 0b00000111, 0b01111111, 0b01100111, 0b01110111, 0b01111100, 0b00111001, 0b01011110, 0b01111001, 0b01110001
 
 .text
-
+/* ------------------------------ */
 /* -----Register Assignments----- */
+/* ------------------------------ */
 @ r0 = timer running/stopped state (0 for stopped, 1 for running) (low v stop, high
 @ r1 = input number into display function (THE BOARD ITSELF)
-@ r2 = array of hex values 
-@ (has to be in R2!!! and passed down each subrourine)
+@ r2 = array of hex values (has to be in R2!!! and passed down each subrourine)
 @ r3 = for first/second digit in each time unit (minutes, seconds, miliseconds) (1 for second digit, 0 for first)
-@ r4 = first 4 displays (6  5  4  3  2    1)
+@ r4 = first 4 displays (6  5  4  3  2  1)
 @ r5 = lap time 
 @ da display state
 @ r6 = is a helper value to check to add 1 or not
@@ -36,8 +37,9 @@ HEX_TABLE:	.byte 0b00111111, 0b00000110, 0b01011011, 0b01001111, 0b01100110, 0b0
 @ don'ts
 @ if you hit 3 then 0, timer will just start, hitting zero doesnt do anything...
 
-
+/* ----------------------- */
 /* -----Initialization---- */
+/* ----------------------- */
 _start:
     @ Writing parallel port1 to all be output
     ldr r0, JP1_BASE
@@ -49,12 +51,82 @@ _start:
     mov r4 , #1
     str r4 , [r0, #4] @ set ADC to auto-update
 
-/* -----Main Loop---- */
+    @ Initializing the data labels
+    ldr r8, A9_TIMER
+    ldr r9, BTN_BASE
+    ldr r10, HEX3_HEX0_BASE
+    ldr r11, HEX6_HEX5_BASE
+    ldr r12, SW_BASE
+
+    ldr r5, =0x00000000 
+    ldr r2, =HEX_TABLE
+    mov r0, #0
+
+    mov r4, r5
+
+    @ initializing the timer display 
+    @ First, second, third display etc, etc
+
+
+    mov r1, r4	
+    mov r3, #0				@first
+    bl _display_hex_21			@first
+
+    mov r1, r4				@second 
+    mov r3, #1				@second 
+    bl _display_hex_21
+
+    mov r1, r4
+    mov r3, #0				@third 
+    bl _display_hex_43			@third 
+
+    mov r1, r4
+    mov r3, #1				@forth 
+    bl _display_hex_43			@forth 
+
+    mov r1, r4
+    mov r3, #0				@fifth 
+    bl _display_hex_65			@fifth
+
+    mov r1, r4
+    mov r3, #1				@sixth 
+    bl _display_hex_65			@sixth
+
+
+    @ INITIALIZING THE CLOCK FOR AN INTERVAL OF TIME AND TO not start counting
+
+    ldr r1 , =2000000  @ hex number to load in the timer for an interval of (1) second(s)
+    str r1 , [ r8 ]
+
+    mov r1, #1		@ init timer state = zero
+    lsl r1, #1
+    str r1, [r8, #8]
+
+/* ------------------ */
+/* -----MAIN LOOP---- */
+/* ------------------ */
 _main:
 
+/* Timer */
+_timer:
+
+/* Set decrement from traffic */
+_calcDec:
+
+/* Read environment brightness */
+_readBrightness:
+
+/* Person detection */
+_detectPpl:
+
+/* Write brightness of light */
+_writeLights:
+@ should branch back to start
 
 
+/* -------------------- */
 /* -----Data Labels---- */
+/* -------------------- */
 @ labels for constants and addresses
 @ from manual
 LED_BASE:		.word	0xFF200000  @ LED base address (not used)
@@ -62,6 +134,6 @@ HEX3_HEX0_BASE:	.word	0xFF200020  @ Hex 1 to 4 base address
 HEX6_HEX5_BASE:	.word	0xFF200030  @ Hex 5 to 6 base address
 SW_BASE:		.word	0xFF200040  @ Slide switch base address
 BTN_BASE:		.word   0xFF200050  @ Push button base address
-A9_TIMER: 		.word   0xFFFEC600
-JP1_BASE:       .word   0xFF200060   @ 32-pin GPIO expansion port base address
-ADC_BASE:       .word   0xFF204000   @ ADC base address
+A9_TIMER: 		.word   0xFFFEC600  @ A9 private timer base address
+JP1_BASE:       .word   0xFF200060  @ 32-pin GPIO expansion port base address
+ADC_BASE:       .word   0xFF204000  @ ADC base address
