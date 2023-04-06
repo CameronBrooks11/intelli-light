@@ -127,8 +127,6 @@ _writeLights:
 /* -------------------- */
 /* -----Data Labels---- */
 /* -------------------- */
-@ labels for constants and addresses
-@ from manual
 LED_BASE:		.word	0xFF200000  @ LED base address (not used)
 HEX3_HEX0_BASE:	.word	0xFF200020  @ Hex 1 to 4 base address
 HEX6_HEX5_BASE:	.word	0xFF200030  @ Hex 5 to 6 base address
