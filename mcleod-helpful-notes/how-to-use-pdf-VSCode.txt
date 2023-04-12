@@ -1,0 +1,1 @@
+download the VS Code extension called "vscode-pdf" by tomoki1207

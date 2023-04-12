@@ -3,9 +3,9 @@
 .data
 @ look up tables, one number for each of the 16 possibilties of 4 MSBs from potentiometer
 @ the bottom 6 values leave the light off at 0 
-@ the rest of them select anywhere from 1 to all 10 lights on 
-@ 0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:1, 7:2, 8:3, 9:4, 10:5, 11:6, 12:7, 13:8, 14:9, 15:10
-LOOK_UP_TABLE:	.word 	0b0000000000, 0b0000000000, 0b0000000000, 0b0000000000, 0b0000000000, 0b0000000000, 0b0000000001, 0b0000000011, 0b0000000111, 0b0000001111, 0b0000011111, 0b0000111111, 0b0001111111, 0b0011111111, 0b0111111111, 0b1111111111
+@ the rest of them select anywhere from 1 to all 10 lights on (0 to A in hex)
+@ 0x0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0x1, 7:0x2, 8:0x3, 9:0x4, 10:0x5, 11:0x6, 12:0x7, 13:0x8, 14:0x9, 15:0xa
+LOOK_UP_TABLE1:	.word 	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa
 
 .text
 
@@ -22,7 +22,7 @@ ldr r0, ADC_BASE 		@ loading the base address of the ADC
 mov r1, #1			@ value of 1 to write to channel 1 
 str r1, [r0, #4] 		@ channel 1 is 4 offset from the base 
 
-ldr r2, =LOOK_UP_TABLE 
+ldr r2, =LOOK_UP_TABLE1 
 
 @@@@@@@@@@@@@@@@@@@@
 @@@ main loop @@@@@@
@@ -72,5 +72,5 @@ pop {r5 - r12, lr}
 bx lr 
 
 
-
+@@@ addresses @@@
 ADC_BASE: 	.word	0xFF204000
