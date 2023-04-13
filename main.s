@@ -7,16 +7,15 @@
 LOOKUP_TABLE:  .word 0b0000000000000000, 0b0000000000000001, 0b0000000000000001, 0b0000000000000011, 0b0000000000000111, 0b0000000000001111, 0b0000000000001111,  0b0000000000011111, 0b0000000000111111, 0b0000000001111111, 0b0000000001111111 , 0b0000000011111111, 0b0000000011111111, 0b0000000111111111, 0b0000001111111111, 0b0000001111111111 ,0b0000001111111111 
 @ This is an array of bytes corresponding to numbers of the 7-segment display
 HEX_TABLE:	.byte 0b00111111, 0b00000110, 0b01011011, 0b01001111, 0b01100110, 0b01101101, 0b01111101, 0b00000111, 0b01111111, 0b01100111, 0b01110111, 0b01111100, 0b00111001, 0b01011110, 0b01111001, 0b01110001
-<<<<<<< HEAD
 
-@FOR READ BRIGHTNESS
+FOR READ BRIGHTNESS
 @ look up tables, one number for each of the 16 possibilties of 4 MSBs from potentiometer
 @ the bottom 6 values leave the light off at 0 
 @ the rest of them select anywhere from 1 to all 10 lights on (0 to A in hex)
 LOOK_UP_TABLE1:	.word 	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa
 
 LOOK_UP_TABLE2:  .word 0b0000000000, 0b0000000001, 0b0000000011, 0b0000000111, 0b0000001111, 0b0000011111, 0b0000111111, 0b0001111111, 0b0011111111, 0b0111111111, 0b1111111111
-=======
+
 TOTAL_HOURS: .word 0x00000017
 PERSON1: .byte 0b00000000
 PERSON2: .byte 0b00000000
@@ -24,8 +23,6 @@ LIGHT1_TRAFFIC: .byte 0b00000000
 LIGHT2_TRAFFIC: .byte 0b00000000
 ACTIVE_TIME1:	.word   0x00000000
 ACTIVE_TIME2:	.word   0x00000000
->>>>>>> d0f550aa1f1a14bbeb264473ef4700e0c44023a5
-
 .text
 /*
 UPDATES [Tues., April 11]:
@@ -97,13 +94,8 @@ _start:
 @r4 - display 
 @r5 - lap time switch state, current time (apparently needed for proper display -Kyle)
 @r6 - check if we are adding one to timer unit 
-<<<<<<< HEAD
 @r7 - high bright value 
 @r8 - FREE
-=======
-@r7 - light 1 total "active" time 
-@r8 - light 2 total "active" time 
->>>>>>> d0f550aa1f1a14bbeb264473ef4700e0c44023a5
 @r9 - FREE
 @r10 - FREE
 @r11 - FREE
@@ -251,8 +243,12 @@ _read_brightness:
 	bx lr
 
 _person_detect:
-<<<<<<< HEAD
-    push {r4 - r6, r8 - r11, lr}
+
+	pop {r4 - r11, lr}   				@ popping original registers back off before returning to main loop
+	bx lr
+
+ _write_lights:
+       push {r4 - r6, r8 - r11, lr}
 
 	@hardcodes for testing 
 	@mov r10, #0			@ person
@@ -276,23 +272,7 @@ _person_detect:
 	ldr r5, GPIO                @ put address of GPIO into register 
 	str r4, [r5]                @ write the binary code to the GPIO address (data register is at base so no shift)
 
-
-=======
-    push {r4 - r11, lr}
-	ldr r4, SW_BASE         @ take address for switches 
-	ldr r10, [r4]           @ load value from switch 1 into r10
-	lsl r10, #2
-	mov r10, r2
->>>>>>> d0f550aa1f1a14bbeb264473ef4700e0c44023a5
-	pop {r4 - r11, lr}   				@ popping original registers back off before returning to main loop
-	bx lr
-
- _write_lights:
-    push {r4 - r11, lr}
-
-
-
-	pop {r4 - r11, lr}   				@ popping original registers back off before returning to main loop
+	pop {r4 - r6, r8 - r11, lr}  				@ popping original registers back off before returning to main loop
 	bx lr
 
 @to check buttons for stop/start
@@ -562,3 +542,7 @@ SW_BASE:		    .word	0xFF200040
 KEY_BASE:		    .word   0xff200050
 A9_TIMER: 		    .word   0xfffec600
 TRAFFIC_STATUS:     .byte   0b00111111
+ACTIVE_TIME1:	    .word   0x00000000
+ACTIVE_TIME2:	    .word   0x00000000
+ADC_BASE: 	.word	0xFF204000
+GPIO:       .word   0xFF200060
