@@ -16,7 +16,15 @@ _start:
 @@ ASSUMING CURRENT TIME VALUE is in r5 
 @@ ASSUMING START TIME HELD IN r1 (this should be in memory)
 @@ ASSUMING END TIME IN r2
-@@ ASSUMING TOTAL TIME TODAY in r3
+@@ ASSUMING TOTAL TIME TODAY in r3 (this should be in memory)
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@ hardcoding for testing @
+mov r10, #1
+mov r9, #0
+mov r5, #250
+mov r1, #10
+mov r3, #0
 
 @@@@@@@@@@@@@@@@@@@@@
 @@ kinda main loop @@
@@ -49,7 +57,7 @@ _record_end_time_and_branch:
 mov r2, r5              @ putting end time into r2 
 sub r8, r2, r1          @ final - initial, into r5 to hold 
 add r3, r8              @ increasing today's total (r3) 
-b _write_ligth          @ continue in program
+b _write_light          @ continue in program
 
 
 

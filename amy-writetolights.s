@@ -13,7 +13,7 @@ _start:
 @@ initialization @@
 @@@@@@@@@@@@@@@@@@@@
 
-@@@@@@@@@@@@@@@ ASSUMPTIONS FOR TESTING @@@@@@@@@@@@@@@@@@@@@@@@@@@@22
+@@@@@@@@@@@@@@@ ASSUMPTIONS FOR TESTING @@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ ASSUMING "PERSON" variable is in r10
 @@ ASSUMING "HIGHBRIGHT" variable is in r11 
 @@ ASSUMING "DECVALUE"  variable is in r12

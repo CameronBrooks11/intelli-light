@@ -8,6 +8,13 @@ LOOKUP_TABLE:  .word 0b0000000000000000, 0b0000000000000001, 0b0000000000000001,
 @ This is an array of bytes corresponding to numbers of the 7-segment display
 HEX_TABLE:	.byte 0b00111111, 0b00000110, 0b01011011, 0b01001111, 0b01100110, 0b01101101, 0b01111101, 0b00000111, 0b01111111, 0b01100111, 0b01110111, 0b01111100, 0b00111001, 0b01011110, 0b01111001, 0b01110001
 
+@FOR READ BRIGHTNESS
+@ look up tables, one number for each of the 16 possibilties of 4 MSBs from potentiometer
+@ the bottom 6 values leave the light off at 0 
+@ the rest of them select anywhere from 1 to all 10 lights on (0 to A in hex)
+LOOK_UP_TABLE1:	.word 	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa
+
+LOOK_UP_TABLE2:  .word 0b0000000000, 0b0000000001, 0b0000000011, 0b0000000111, 0b0000001111, 0b0000011111, 0b0000111111, 0b0001111111, 0b0011111111, 0b0111111111, 0b1111111111
 
 .text
 /*
@@ -80,7 +87,7 @@ _start:
 @r4 - display 
 @r5 - lap time switch state, current time (apparently needed for proper display -Kyle)
 @r6 - check if we are adding one to timer unit 
-@r7 - FREE
+@r7 - high bright value 
 @r8 - FREE
 @r9 - FREE
 @r10 - FREE
@@ -177,16 +184,61 @@ b _main
 @subroutines
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 _read_brightness:
-    push {r4 - r11, lr}
+    push {r4 - r6, r8 - r11, lr}
 
+	ldr r10, ADC_BASE 		@ loading the base address of the ADC 
+	mov r9, #1			@ value of 1 to write to channel 1 
+	str r9, [r10, #4] 		@ channel 1 is 4 offset from the base 
 
+	ldr r2, =LOOK_UP_TABLE1 
+	
+	@READ POTENTIOMETER
+	@ set r2 to be one and lsl by 15 - to use for bitmasking with the update bit 
+	mov r11, #1
+	lsl r11, #15		@ ** for simulator do 16 **
 
-	pop {r4 - r11, lr}   				@ popping original registers back off before returning to main loop
+	adc_loop:
+	ldr r4, [r10]		@ address for channel 0 
+	and r5, r4, r11		@ check bit 15 with the mask 
+	cmp r5, r11	
+	bne adc_loop		@ conversion's not done yet - try again 
+
+	sub r4, r11		@ take out bit 15 from the data 
+	
+	mov r5, #0b111100000000			@ we only want top 4 of 12 bits (16 possible values) 
+	and r4, r5
+	lsr r4, #8				        @ now there's a value between 0000 and 1111 in r4 
+
+	lsl r4, #2				        @ equiv to multiplying by 4 to account for offset 
+	ldr r7, [r2, r4]			    @ take the corresponding value from look up table and place it in r1
+
+	pop {r4 - r6, r8 - r11, lr}   				@ popping original registers back off before returning to main loop
 	bx lr
 
 _person_detect:
-    push {r4 - r11, lr}
+    push {r4 - r6, r8 - r11, lr}
 
+	@hardcodes for testing 
+	@mov r10, #0			@ person
+	@mov r11, #0x08			@ high bright 
+	mov r12, #0x02			@ dec value 
+
+	@ write GPIO to be all output (for LEDs)
+	ldr r0, GPIO                                    @ load GPIO address into register 
+	ldr r1, =0xffffffff                             @ set everything high (output)
+	str r1, [r0, #4]                                @ store in direction control register - base shifted by 4
+
+	mov r8, r7         @ put highbright value into r2 - this is the value we'll write to LEDs
+
+	ldr r10, [PERSON1]
+	cmp r10, #0             @ is person = 0? 
+	subeq r8, r12           @ if no person (0), decrement brightness value 
+
+	ldr r3, =LOOK_UP_TABLE2     @ put address of lookup table into register 
+	lsl r2, #2 					@ account for word offset 
+	ldr r4, [r3,r8]             @ shift by the hex value we want to write - gives us a binary code
+	ldr r5, GPIO                @ put address of GPIO into register 
+	str r4, [r5]                @ write the binary code to the GPIO address (data register is at base so no shift)
 
 
 	pop {r4 - r11, lr}   				@ popping original registers back off before returning to main loop
@@ -476,4 +528,5 @@ TOTAL_HOURS:        .word   0x00000017             @ Initialize value at this ar
 TRAFFIC_STATUS:     .byte   0b00111111
 ACTIVE_TIME1:	    .word   0x00000000
 ACTIVE_TIME2:	    .word   0x00000000
-
+ADC_BASE: 	.word	0xFF204000
+GPIO:       .word   0xFF200060

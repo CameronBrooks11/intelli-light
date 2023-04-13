@@ -18,11 +18,6 @@ _start:
 @ setting ADC to auto update 
 @ done by writing 1 to channel 1 
 
-ldr r0, ADC_BASE 		@ loading the base address of the ADC 
-mov r1, #1			@ value of 1 to write to channel 1 
-str r1, [r0, #4] 		@ channel 1 is 4 offset from the base 
-
-ldr r2, =LOOK_UP_TABLE1 
 
 @@@@@@@@@@@@@@@@@@@@
 @@@ main loop @@@@@@
@@ -33,10 +28,11 @@ _main_loop:
 bl _READ_ADC_POTENTI			@ get the value from ADC in r4
 mov r5, #0b111100000000			@ we only want top 4 of 12 bits (16 possible values) 
 and r4, r5
-lsr r4, #8				@ now there's a value between 0000 and 1111 in r4 
+lsr r4, #8				        @ now there's a value between 0000 and 1111 in r4 
 
-lsl r4, #2				@ equiv to multiplying by 4 to account for offset 
-ldr r1, [r2, r4]			@ take the corresponding value from look up table and place it in r1
+lsl r4, #2				        @ equiv to multiplying by 4 to account for offset 
+ldr r1, [r2, r4]			    @ take the corresponding value from look up table and place it in r1
+@ldr r1, [HIGH_BRIGHT, r4]      @ replace line above once its done as an address 
 
 b _main_loop
 @@@
@@ -74,3 +70,4 @@ bx lr
 
 @@@ addresses @@@
 ADC_BASE: 	.word	0xFF204000
+HIGH_BRIGHT: .word
