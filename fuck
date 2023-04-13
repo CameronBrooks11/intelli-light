@@ -1,0 +1,27 @@
+
+
+FOR READ BRIGHTNESS
+@ look up tables, one number for each of the 16 possibilties of 4 MSBs from potentiometer
+@ the bottom 6 values leave the light off at 0 
+@ the rest of them select anywhere from 1 to all 10 lights on (0 to A in hex)
+LOOK_UP_TABLE1:	.word 	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa
+
+LOOK_UP_TABLE2:  .word 0b0000000000, 0b0000000001, 0b0000000011, 0b0000000111, 0b0000001111, 0b0000011111, 0b0000111111, 0b0001111111, 0b0011111111, 0b0111111111, 0b1111111111
+=======
+TOTAL_HOURS: .word 0x00000017
+PERSON1: .byte 0b00000000
+PERSON2: .byte 0b00000000
+LIGHT1_TRAFFIC: .byte 0b00000000
+LIGHT2_TRAFFIC: .byte 0b00000000
+ACTIVE_TIME1:	.word   0x00000000
+ACTIVE_TIME2:	.word   0x00000000
+
+
+
+
+
+<<<<<<< HEAD
+ACTIVE_TIME1:	    .word   0x00000000
+ACTIVE_TIME2:	    .word   0x00000000
+ADC_BASE: 	.word	0xFF204000
+GPIO:       .word   0xFF200060
