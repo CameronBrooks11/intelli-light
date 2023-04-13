@@ -562,11 +562,3 @@ SW_BASE:		    .word	0xFF200040
 KEY_BASE:		    .word   0xff200050
 A9_TIMER: 		    .word   0xfffec600
 TRAFFIC_STATUS:     .byte   0b00111111
-<<<<<<< HEAD
-ACTIVE_TIME1:	    .word   0x00000000
-ACTIVE_TIME2:	    .word   0x00000000
-ADC_BASE: 	.word	0xFF204000
-GPIO:       .word   0xFF200060
-=======
-
->>>>>>> d0f550aa1f1a14bbeb264473ef4700e0c44023a5
