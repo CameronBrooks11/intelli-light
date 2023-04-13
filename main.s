@@ -8,7 +8,7 @@ LOOKUP_TABLE:  .word 0b0000000000000000, 0b0000000000000001, 0b0000000000000001,
 @ This is an array of bytes corresponding to numbers of the 7-segment display
 HEX_TABLE:	.byte 0b00111111, 0b00000110, 0b01011011, 0b01001111, 0b01100110, 0b01101101, 0b01111101, 0b00000111, 0b01111111, 0b01100111, 0b01110111, 0b01111100, 0b00111001, 0b01011110, 0b01111001, 0b01110001
 
-FOR READ BRIGHTNESS
+@ FOR READ BRIGHTNESS
 @ look up tables, one number for each of the 16 possibilties of 4 MSBs from potentiometer
 @ the bottom 6 values leave the light off at 0 
 @ the rest of them select anywhere from 1 to all 10 lights on (0 to A in hex)
@@ -194,7 +194,7 @@ _check_switch:
 
 	ldr r4, SW_BASE         @ take address for switches 
 	ldr r10, [r4]           @ load value from switch 1 into r10
-	str r10, =PERSON1
+	str r10, [PERSON1]
 	cmp r10, #1
 	beq _add_to_active
 	pop {r4 - r11, lr}   				@ popping original registers back off before returning to main loop
@@ -203,9 +203,9 @@ _check_switch:
 _add_to_active:
     push {r4 - r11, lr}
 
-	ldr r4, [ACTIVE_TIME1]
+	mov r4, [ACTIVE_TIME1]
 	add r4, r4, #200
-	str r4, =ACTIVE_TIME1
+	str r4, [ACTIVE_TIME1]
 
 	pop {r4 - r11, lr}   				@ popping original registers back off before returning to main loop
 	bx lr
@@ -262,7 +262,7 @@ _person_detect:
 
 	mov r8, r7         @ put highbright value into r2 - this is the value we'll write to LEDs
 
-	ldr r10, [PERSON1]
+	mov r10, [PERSON1]
 	cmp r10, #0             @ is person = 0? 
 	subeq r8, r12           @ if no person (0), decrement brightness value 
 
@@ -401,15 +401,15 @@ _set_decrement_brightness:
     ldr r5, =ACTIVE_TIME2          // Loads the total active time for the day for light 2
 
     add r6, r4, r5        // Add r4 and r5 then put in r6
-    udiv r7, r2, #2       // Unsigned divide r2 by 2, store result in r7
+	lsr r7, r2, #1       // Unsigned divide r2 by 2, store result in r7
     cmp r4, r7            // compare r1 and r2
     movlt r4, #0        // if r5 < r7 (lower), set r0 to 0
     movge r4, #1         // if r5 >= r7 (higher or equal), set r0 to 1 
     cmp r5, r7            // compare r1 and r2
     movlt r5, #0        // if r5 < r7 (lower), set r0 to 0
     movge r5, #1         // if r5 >= r7 (higher or equal), set r0 to 1 
-	str r4, =LIGHT1_TRAFFIC
-	str r5, =LIGHT2_TRAFFIC
+	str r4, [LIGHT1_TRAFFIC]
+	str r5, [LIGHT2_TRAFFIC]
 	mov r7, #0
 	mov r8, #0
 
@@ -542,7 +542,5 @@ SW_BASE:		    .word	0xFF200040
 KEY_BASE:		    .word   0xff200050
 A9_TIMER: 		    .word   0xfffec600
 TRAFFIC_STATUS:     .byte   0b00111111
-ACTIVE_TIME1:	    .word   0x00000000
-ACTIVE_TIME2:	    .word   0x00000000
 ADC_BASE: 	.word	0xFF204000
 GPIO:       .word   0xFF200060
