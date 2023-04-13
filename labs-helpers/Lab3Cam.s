@@ -7,9 +7,9 @@ LOOKUP_TABLE:  .word 0b0000000000000000, 0b0000000000000001, 0b0000000000000001,
 
 /* QUICK REFERENCE
 LABELS AND CONSTANTS
-    SW_BASE:		.word	0xFF200040
+    SW_BASE:  .word	0xFF200040
     JP1_BASE: .word  0xFF200060
-    ADC_BASE:       .word  0xFF204000
+    ADC_BASE:  .word  0xFF204000
 */
 /* A/D Conveter function
 • To update all channels write any value to the Channel 0 register.
