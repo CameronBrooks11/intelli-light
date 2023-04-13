@@ -7,7 +7,13 @@
 LOOKUP_TABLE:  .word 0b0000000000000000, 0b0000000000000001, 0b0000000000000001, 0b0000000000000011, 0b0000000000000111, 0b0000000000001111, 0b0000000000001111,  0b0000000000011111, 0b0000000000111111, 0b0000000001111111, 0b0000000001111111 , 0b0000000011111111, 0b0000000011111111, 0b0000000111111111, 0b0000001111111111, 0b0000001111111111 ,0b0000001111111111 
 @ This is an array of bytes corresponding to numbers of the 7-segment display
 HEX_TABLE:	.byte 0b00111111, 0b00000110, 0b01011011, 0b01001111, 0b01100110, 0b01101101, 0b01111101, 0b00000111, 0b01111111, 0b01100111, 0b01110111, 0b01111100, 0b00111001, 0b01011110, 0b01111001, 0b01110001
-
+TOTAL_HOURS: .word 0x00000017
+PERSON1: .byte 0b00000000
+PERSON2: .byte 0b00000000
+LIGHT1_TRAFFIC: .byte 0b00000000
+LIGHT2_TRAFFIC: .byte 0b00000000
+ACTIVE_TIME1:	.word   0x00000000
+ACTIVE_TIME2:	.word   0x00000000
 
 .text
 /*
@@ -74,14 +80,14 @@ _start:
 /* ------------------------------ */
 @r0 - timer on/off  @ We could store this state to memory if needed...
 @r1 - input to display, used to update time @@ Questionable if we can use this or not... - Kyle
-@r2 - FREE
+@r2 - 
 @r3 - identify which digit of timer unit (1 for left digit (larger), 0 for right (smaller))
 @r3 - also used as working register throughout
 @r4 - display 
 @r5 - lap time switch state, current time (apparently needed for proper display -Kyle)
 @r6 - check if we are adding one to timer unit 
-@r7 - FREE
-@r8 - FREE
+@r7 - light 1 total "active" time 
+@r8 - light 2 total "active" time 
 @r9 - FREE
 @r10 - FREE
 @r11 - FREE
@@ -122,7 +128,6 @@ _wait_for_start:
 beq _wait_for_start			@if so - don't start yet - wait for start... keep looping until the enable is 1 
 	
 
-
 _wait_for_timer: 
     ldr r8 , A9_TIMER
 	ldr r3, [r8, #12]		@put timeout bit into r3 
@@ -134,7 +139,7 @@ _wait_for_timer:
 	bl _update_time		@update the time with the value in r1 
 	mov r5, r1			@eventually move r1 output of branch back into r5 to update time 
 	mov r4, r5			@put the current time into the write to display register 
-    bl _read_brightness
+	bl _read_brightness
     bl _person_detect
     bl _write_lights
 
@@ -176,6 +181,27 @@ b _main
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @subroutines
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+_check_switch:
+    push {r4 - r11, lr}
+
+	ldr r4, SW_BASE         @ take address for switches 
+	ldr r10, [r4]           @ load value from switch 1 into r10
+	str r10, =PERSON1
+	cmp r10, #1
+	beq _add_to_active
+	pop {r4 - r11, lr}   				@ popping original registers back off before returning to main loop
+	bx lr
+
+_add_to_active:
+    push {r4 - r11, lr}
+
+	ldr r4, [ACTIVE_TIME1]
+	add r4, r4, #200
+	str r4, =ACTIVE_TIME1
+
+	pop {r4 - r11, lr}   				@ popping original registers back off before returning to main loop
+	bx lr
+
 _read_brightness:
     push {r4 - r11, lr}
 
@@ -186,9 +212,10 @@ _read_brightness:
 
 _person_detect:
     push {r4 - r11, lr}
-
-
-
+	ldr r4, SW_BASE         @ take address for switches 
+	ldr r10, [r4]           @ load value from switch 1 into r10
+	lsl r10, #2
+	mov r10, r2
 	pop {r4 - r11, lr}   				@ popping original registers back off before returning to main loop
 	bx lr
 
@@ -310,11 +337,6 @@ _update_time:
             movge r12, #0           @ Set counter to 0 if 24 hours has passed
             str r12, [r8]           @ Store the (0-23) value to TOTAL_HOURS address
 			bge _set_decrement_brightness  @@@ XX uncomment later
-			@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-			@@@@@@@@@@@@@@@@@@@@ CAM NEEDS TO POINT BACK HERE @@@@@@@@@@@@@@@@@
-			@@@@@@@@@@@@@@@@@@@ after _set_decrement_brightness @@@@@@@@@@@@@@@
-			@@@@@@@@@@@@@@@@@@@@ just use bx lr (kisses xoxo) @@@@@@@@@@@@@@@@@
-			@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	        b _write_display 		@write this new cleared time onto the display 
             @ check if the hour count is greater than or equal to 24 (bc we have an add 12 hours button)
             
@@ -338,11 +360,10 @@ _set_decrement_brightness:
     cmp r5, r7            // compare r1 and r2
     movlt r5, #0        // if r5 < r7 (lower), set r0 to 0
     movge r5, #1         // if r5 >= r7 (higher or equal), set r0 to 1 
-    mov r8, #0
-    add r8, r8, r4
-    lsl r8, #1
-    add r8, r8, r5
-    str r8, =TRAFFIC_STATUS
+	str r4, =LIGHT1_TRAFFIC
+	str r5, =LIGHT2_TRAFFIC
+	mov r7, #0
+	mov r8, #0
 
 	pop {r4 - r11,lr} 		@pop back original registers
 	bx lr 
@@ -472,8 +493,5 @@ HEX6_HEX5_BASE:		.word	0xFF200030
 SW_BASE:		    .word	0xFF200040
 KEY_BASE:		    .word   0xff200050
 A9_TIMER: 		    .word   0xfffec600
-TOTAL_HOURS:        .word   0x00000017             @ Initialize value at this arbitrary address as 0, for demo to 23 (0x17)
 TRAFFIC_STATUS:     .byte   0b00111111
-ACTIVE_TIME1:	    .word   0x00000000
-ACTIVE_TIME2:	    .word   0x00000000
 
