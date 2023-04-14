@@ -122,7 +122,7 @@ beq _wait_for_start			@ If so - don't start yet - wait for start... keep looping
 _wait_for_timer: 
     ldr r8 , A9_TIMER
 	ldr r3, [r8, #12]		@ Put timeout bit into r3 
-	cmp r3, #0			    @is the timeout bit 0? (ie: is the timer not done yet?) 
+	cmp r3, #0			    @ Is the timeout bit 0? (ie: is the timer not done yet?) 
 	beq _wait_for_timer 	@ If not done yet, check again and keep looping
 	str r3, [r8, #12]		@ Eventually, store r3 back in timeout 
 
@@ -136,8 +136,8 @@ _wait_for_timer:
 
 
 
-_write_display: 		@ branch here to access display writing when needed for lap and clear
-					    @ after updating the time, write to the displays
+_write_display: 		@ Branch here to access display writing when needed for lap and clear
+					    @ After updating the time, write to the displays
 
 mov r1, r5			@ Put the time into the display input register 
 mov r3, #0				@ First display - left digit of first pair 
@@ -166,12 +166,9 @@ bl _display_hex_65
 @ loop back to beginning
 b _main
 
-
-
-
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@ Subroutines
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+/* --------------------- */
+/* -----SUB ROUTINES---- */
+/* --------------------- */
 _check_switch:
     push {r4 - r11, lr}
 
@@ -200,7 +197,7 @@ _read_brightness:
 
 	ldr r10, ADC_BASE 		@ Loading the base address of the ADC 
 	mov r9, #1			@ value of 1 to write to channel 1 
-	str r9, [r10, #4] 		@ channel 1 is 4 offset from the base 
+	str r9, [r10, #4] 		@ Channel 1 is 4 offset from the base 
 
 	ldr r2, =LOOK_UP_TABLE1 
 	
@@ -210,10 +207,10 @@ _read_brightness:
 	lsl r11, #16		@ ** for simulator do 16 **
 
 	adc_loop:
-	ldr r4, [r10]		@ address for channel 0 
-	and r5, r4, r11		@ check bit 15 with the mask 
+	ldr r4, [r10]		@ Address for channel 0 
+	and r5, r4, r11		@ Check bit 15 with the mask 
 	cmp r5, r11	
-	bne adc_loop		@ conversion's not done yet - try again 
+	bne adc_loop		@ Conversion's not done yet - try again 
 
 	sub r4, r11		@ take out bit 15 from the data 
 	
@@ -249,7 +246,7 @@ _read_brightness:
 
 
 	ldr r3, =LOOK_UP_TABLE2     @ put address of lookup table into register 
-	lsl r2, #2 					@ account for word offset 
+	lsl r2, #2 					@ Account for word offset 
 	ldr r4, [r3,r8]             @ shift by the hex value we want to write - gives us a binary code
 	ldr r5, GPIO                @ put address of GPIO into register 
 	str r4, [r5]                @ write the binary code to the GPIO address (data register is at base so no shift)
@@ -275,28 +272,28 @@ _check_start_stop:
 	pop {r4 - r11, lr}		@ Pop registers back from stack 
 	bx lr 
 
+@ Check values of digits - see if we need to add to next place value 
 _update_time: 
 	push {r4 - r11, lr} 		@ Push registers to the stack  
-	
-	@ Check values of digits - see if we need to add to next place value 
-	@is first digit a 9? 
+		
+	@ Is first digit a 9? 
 	mov r6, r1			@ Put value of current time into r6 
-	and r6, #0x09			@bit mask with a 9 in respective column 
+	and r6, #0x09			@ Bit mask with a 9 in respective column 
 	cmp r6, #0x09			@ Check if it's a 9
 
 	beq _add_to_2 			@ If it is, add to second digit 
 	b _add_one			@otherwise, add one to this digit 
 
 		_add_one:
-			add r1, #0x01			@increment by 1 
+			add r1, #0x01			@ Increment by 1 
 			b _update_done			@ Exit to end of subroutines in this section
 
 		_add_to_2:
-			add r1, #0x10			@increment by 1 in 2nd place value 
+			add r1, #0x10			@ Increment by 1 in 2nd place value 
 			mov r6, #0xfffffff0		@ Put all ones except for last byte into r6
-			and r1, r6			@bit mask so everything stays the same and just clears that farthest byte
+			and r1, r6			@ Bit mask so everything stays the same and just clears that farthest byte
 
-	@is second digit a 10? 
+	@ Is second digit a 10? 
 	mov r6, r1
 	and r6, #0xa0
 	cmp r6, #0xa0					
@@ -309,7 +306,7 @@ _update_time:
 			mov r6, #0xffffff0f
 			and r1, r6
 
-	@is third digit a 10? 
+	@ Is third digit a 10? 
 	mov r6, r1
 	and r6, #0x0a00
 	cmp r6, #0x0a00
@@ -322,7 +319,7 @@ _update_time:
 			mov r6, #0xfffff0ff
 			and r1, r6
 
-	@is fourth digit 6? 
+	@ Is fourth digit 6? 
 	mov r6, r1
 	and r6, #0x6000
 	cmp r6, #0x6000
@@ -335,7 +332,7 @@ _update_time:
 			mov r6, #0xffff0fff
 			and r1, r6
 
-	@is fifth digit a 10? 
+	@ Is fifth digit a 10? 
 	mov r6, r1
 	and r6, #0x000a0000
 	cmp r6, #0x000a0000
@@ -348,7 +345,7 @@ _update_time:
 			mov r6, #0xfff0ffff
 			and r1, r6
 
-	@is sixth digit 6? 
+	@ Is sixth digit 6? 
 	mov r6, r1
 	and r6, #0x600000
 	cmp r6, #0x600000
@@ -356,17 +353,17 @@ _update_time:
 	b _update_done      @@@ XX instead of finishing, reset the system
 
 
-        _add_hour: @ add hour and reset the display
+        _add_hour: @ Add hour and reset the display
             ldr r8, =TOTAL_HOURS    @ Load in address of hours for the day
             ldr r12, [r8]           @ Load the current value at this address
-            add r12, #1             @@ XX add 1 to the hour count
-            moveq r5, #0			@ clear the current time (since 1 hour has passed)
+            add r12, #1             @ Add 1 to the hour count
+            moveq r5, #0			@ Clear the current time (since 1 hour has passed)
 			cmp r12, #24            @ Check is 24 hours has passed
             movge r12, #0           @ Set counter to 0 if 24 hours has passed
             str r12, [r8]           @ Store the (0-23) value to TOTAL_HOURS address
 			bge _set_decrement_brightness  @@@ XX uncomment later
 	        b _write_display 		@ Write this new cleared time onto the display 
-            @ check if the hour count is greater than or equal to 24 (bc we have an add 12 hours button)
+            @ Check if the hour count is greater than or equal to 24 (bc we have an add 12 hours button)
             
               
 
@@ -382,10 +379,10 @@ _set_decrement_brightness:
 
     add r6, r4, r5        @ Add r4 and r5 then put in r6
 	lsr r7, r2, #1       @ Unsigned divide r2 by 2, store result in r7
-    cmp r4, r7            @ compare r1 and r2
+    cmp r4, r7            @ Compare r1 and r2
     movlt r4, #0        @ if r5 < r7 (lower), set r0 to 0
     movge r4, #1         @ if r5 >= r7 (higher or equal), set r0 to 1 
-    cmp r5, r7            @ compare r1 and r2
+    cmp r5, r7            @ Compare r1 and r2
     movlt r5, #0        @ if r5 < r7 (lower), set r0 to 0
     movge r5, #1         @ if r5 >= r7 (higher or equal), set r0 to 1 
 	ldr r10, LIGHT1_TRAFFIC
@@ -408,7 +405,7 @@ _display_hex_21:
 	cmp r3, #1						@ Check if we're accessing the right or left digit 
 	
 	movne r9, #0x0000000f					@ This input is just on first number 
-	andne r1, r9						@bitmask with r1 to select only that portion
+	andne r1, r9						@ Bitmask with r1 to select only that portion
 	
 	moveq r9, #0x0000000f				
 	lsl r9, #4						@ This input is just on second number 	
