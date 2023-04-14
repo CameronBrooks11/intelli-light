@@ -97,7 +97,7 @@ _main:
 
 
 _wait_for_start:
-	@to check buttons for clear command
+	@ To check buttons for clear command
     ldr r9, KEY_BASE       @ Load address for push buttons
 	ldr r3, [r9]			@ Address for push buttons
 	and r3, #0b1000			@ Clear everything except bit 3 (clear button)
@@ -148,7 +148,7 @@ mov r3, #1				@ Second display - right digit of first pair
 bl _display_hex_21
 
 mov r1, r5
-mov r3, #0				@third display - left digit of second pair 
+mov r3, #0				@ Third display - left digit of second pair 
 bl _display_hex_43
 
 mov r1, r5
@@ -231,8 +231,8 @@ _read_brightness:
     push {r4 - r6, r8 - r11, lr}
 
 	@ Hardcodes for testing 
-	@mov r10, #0			@ person
-	@mov r11, #0x08			@ high bright 
+	@ Mov r10, #0			@ person
+	@ Mov r11, #0x08			@ high bright 
 	mov r12, #0x02			@ dec value 
 
 	@ write GPIO to be all output (for LEDs)
@@ -257,7 +257,7 @@ _read_brightness:
 	pop {r4 - r6, r8 - r11, lr}  				@ Popping original registers back off before linking back to main
 	bx lr
 
-@to check buttons for stop/start
+@ To check buttons for stop/start
 _check_start_stop:
 	push {r4 - r11, lr}		@ Push registers to the stack  
 
@@ -352,7 +352,6 @@ _update_time:
 	mov r6, r1
 	and r6, #0x600000
 	cmp r6, #0x600000
-	// beq _start      @@@@@ XX instead of branching to start, lets add 1 to a register and then clear the entire timer
     beq _add_hour
 	b _update_done      @@@ XX instead of finishing, reset the system
 
@@ -362,7 +361,6 @@ _update_time:
             ldr r12, [r8]           @ Load the current value at this address
             add r12, #1             @@ XX add 1 to the hour count
             moveq r5, #0			@ clear the current time (since 1 hour has passed)
-	        // moveq r4, r5
 			cmp r12, #24            @ Check is 24 hours has passed
             movge r12, #0           @ Set counter to 0 if 24 hours has passed
             str r12, [r8]           @ Store the (0-23) value to TOTAL_HOURS address
@@ -379,17 +377,17 @@ _update_time:
 _set_decrement_brightness:
 	push {r4 - r11, lr} 		@ Push registers to the stack  
 
-    ldr r4, =ACTIVE_TIME1          // Loads the total active time for the day for light 1
-    ldr r5, =ACTIVE_TIME2          // Loads the total active time for the day for light 2
+    ldr r4, =ACTIVE_TIME1          @ Loads the total active time for the day for light 1
+    ldr r5, =ACTIVE_TIME2          @ Loads the total active time for the day for light 2
 
-    add r6, r4, r5        // Add r4 and r5 then put in r6
-	lsr r7, r2, #1       // Unsigned divide r2 by 2, store result in r7
-    cmp r4, r7            // compare r1 and r2
-    movlt r4, #0        // if r5 < r7 (lower), set r0 to 0
-    movge r4, #1         // if r5 >= r7 (higher or equal), set r0 to 1 
-    cmp r5, r7            // compare r1 and r2
-    movlt r5, #0        // if r5 < r7 (lower), set r0 to 0
-    movge r5, #1         // if r5 >= r7 (higher or equal), set r0 to 1 
+    add r6, r4, r5        @ Add r4 and r5 then put in r6
+	lsr r7, r2, #1       @ Unsigned divide r2 by 2, store result in r7
+    cmp r4, r7            @ compare r1 and r2
+    movlt r4, #0        @ if r5 < r7 (lower), set r0 to 0
+    movge r4, #1         @ if r5 >= r7 (higher or equal), set r0 to 1 
+    cmp r5, r7            @ compare r1 and r2
+    movlt r5, #0        @ if r5 < r7 (lower), set r0 to 0
+    movge r5, #1         @ if r5 >= r7 (higher or equal), set r0 to 1 
 	ldr r10, LIGHT1_TRAFFIC
 	str r4, [r10]
 	ldr r11, LIGHT2_TRAFFIC
@@ -409,11 +407,11 @@ _display_hex_21:
 	
 	cmp r3, #1						@ Check if we're accessing the right or left digit 
 	
-	movne r9, #0x0000000f					@this input is just on first number 
+	movne r9, #0x0000000f					@ This input is just on first number 
 	andne r1, r9						@bitmask with r1 to select only that portion
-
+	
 	moveq r9, #0x0000000f				
-	lsl r9, #4						@this input is just on second number 	
+	lsl r9, #4						@ This input is just on second number 	
 	andeq r1, r9
 	lsreq r1, #4
 
@@ -443,22 +441,22 @@ _display_hex_21:
 _display_hex_43:
 	push {r4 - r11, lr}
 	
-	lsr r1, #8 						@moving over so we're in minutes place now 
+	lsr r1, #8 						@ Moving over so we're in minutes place now 
 
 	cmp r3, #1						@ Check if we're accessing the right or left digit 
 	
-	movne r9, #0x0000000f					@this input is just on first number 
+	movne r9, #0x0000000f					@ This input is just on first number 
 	andne r1, r9
 
 	moveq r9, #0x0000000f				
-	lsl r9, #4						@this input is just on second number 	
+	lsl r9, #4						@ This input is just on second number 	
 	andeq r1, r9
 	lsreq r1, #4
 
     ldr r5, =HEX_TABLE
 	mov r4, r5 						@ Store Hex table in r4
 	ldrb r6, [r4, r1]   					@ Storing the value r4 shifted by r1 to access right digit, and storing in r3
-	lsl r6, #16						@moving over 4 bytes to get to the 4 and 3 portion of this address
+	lsl r6, #16						@ Moving over 4 bytes to get to the 4 and 3 portion of this address
 	lsleq r6, #8						@ If it's equal to 1 (ie if it's the left digit) we move over two more bytes to get to the appropriate spot
 
     ldr r10, HEX3_HEX0_BASE             @ Load address for bottom 4 segments
@@ -518,13 +516,11 @@ _display_hex_65:
 /* -------------------- */
 /* -----Data Labels---- */
 /* -------------------- */
-
 HEX3_HEX0_BASE:		.word	0xFF200020
 HEX6_HEX5_BASE:		.word	0xFF200030
 SW_BASE:		    .word	0xFF200040
 KEY_BASE:		    .word   0xff200050
 A9_TIMER: 		    .word   0xfffec600
-//TRAFFIC_STATUS:     .byte   0b00111111
 ADC_BASE: 	.word	0xFF204000
 GPIO:       .word   0xFF200060
 PERSON1: .word
