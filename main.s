@@ -85,10 +85,10 @@ _start:
 @r12 - FREE
 
 @ CONTROLS
-@ push button 0 -> start
-@ push button 1 -> stop
-@ push button 2 -> BLANK???
-@ push button 3 -> RESET
+@ Push button 0 -> start
+@ Push button 1 -> stop
+@ Push button 2 -> BLANK???
+@ Push button 3 -> RESET
 
 /* ------------------ */
 /* -----MAIN LOOP---- */
@@ -135,11 +135,9 @@ _wait_for_timer:
     bl _write_lights
 
 
-
-_write_display: 		@ Branch here to access display writing when needed for lap and clear
-					    @ After updating the time, write to the displays
-
-mov r1, r5			@ Put the time into the display input register 
+@ Branch here to access display writing (clear, stop, write time)
+_write_display: 		
+mov r1, r5				@ Put the time into the display input register 
 mov r3, #0				@ First display - left digit of first pair 
 bl _display_hex_21
 
@@ -172,7 +170,7 @@ b _main
 _check_switch:
     push {r4 - r11, lr}
 
-	ldr r4, SW_BASE         @ take address for switches 
+	ldr r4, SW_BASE         @ Take address for switches 
 	ldr r10, [r4]           @ Load value from switch 1 into r10
 	ldr r5, =PERSON1
 	str r10, [r5]
@@ -196,7 +194,7 @@ _read_brightness:
     push {r4 - r6, r8 - r11, lr}
 
 	ldr r10, ADC_BASE 		@ Loading the base address of the ADC 
-	mov r9, #1			@ value of 1 to write to channel 1 
+	mov r9, #1			@ Value of 1 to write to channel 1 
 	str r9, [r10, #4] 		@ Channel 1 is 4 offset from the base 
 
 	ldr r2, =LOOK_UP_TABLE1 
@@ -212,14 +210,14 @@ _read_brightness:
 	cmp r5, r11	
 	bne adc_loop		@ Conversion's not done yet - try again 
 
-	sub r4, r11		@ take out bit 15 from the data 
+	sub r4, r11		@ Take out bit 15 from the data 
 	
-	mov r5, #0b111100000000			@ we only want top 4 of 12 bits (16 possible values) 
+	mov r5, #0b111100000000			@ We only want top 4 of 12 bits (16 possible values) 
 	and r4, r5
 	lsr r4, #8				        @ now there's a value between 0000 and 1111 in r4 
 
 	lsl r4, #2				        @ equiv to multiplying by 4 to account for offset 
-	ldr r7, [r2, r4]			    @ take the corresponding value from look up table and place it in r1
+	ldr r7, [r2, r4]			    @ Take the corresponding value from look up table and place it in r1
 
 	pop {r4 - r6, r8 - r11, lr}   				@ Popping original registers back off before linking back to main
 	bx lr
@@ -228,28 +226,28 @@ _read_brightness:
     push {r4 - r6, r8 - r11, lr}
 
 	@ Hardcodes for testing 
-	@ Mov r10, #0			@ person
+	@ Mov r10, #0			@ Person
 	@ Mov r11, #0x08			@ high bright 
 	mov r12, #0x02			@ dec value 
 
-	@ write GPIO to be all output (for LEDs)
+	@ Write GPIO to be all output (for LEDs)
 	ldr r0, GPIO                                    @ Load GPIO address into register 
 	ldr r1, =0xffffffff                             @ set everything high (output)
 	str r1, [r0, #4]                                @ store in direction control register - base shifted by 4
 
-	mov r8, r7         @ put highbright value into r2 - this is the value we'll write to LEDs
+	mov r8, r7         @ Put highbright value into r2 - this is the value we'll write to LEDs
 
 	ldr r5, PERSON1
 	ldr r10, [r5]
-	cmp r10, #0             @ is person = 0? 
-	subeq r8, r12           @ if no person (0), decrement brightness value 
+	cmp r10, #0             @ Is person = 0? 
+	subeq r8, r12           @ If no person (0), decrement brightness value 
 
 
-	ldr r3, =LOOK_UP_TABLE2     @ put address of lookup table into register 
+	ldr r3, =LOOK_UP_TABLE2     @ Put address of lookup table into register 
 	lsl r2, #2 					@ Account for word offset 
 	ldr r4, [r3,r8]             @ shift by the hex value we want to write - gives us a binary code
-	ldr r5, GPIO                @ put address of GPIO into register 
-	str r4, [r5]                @ write the binary code to the GPIO address (data register is at base so no shift)
+	ldr r5, GPIO                @ Put address of GPIO into register 
+	str r4, [r5]                @ Write the binary code to the GPIO address (data register is at base so no shift)
 
 	pop {r4 - r6, r8 - r11, lr}  				@ Popping original registers back off before linking back to main
 	bx lr
@@ -272,7 +270,7 @@ _check_start_stop:
 	pop {r4 - r11, lr}		@ Pop registers back from stack 
 	bx lr 
 
-@ Check values of digits - see if we need to add to next place value 
+@ Check values of digits to see if we need to add to next place value 
 _update_time: 
 	push {r4 - r11, lr} 		@ Push registers to the stack  
 		
@@ -291,7 +289,7 @@ _update_time:
 		_add_to_2:
 			add r1, #0x10			@ Increment by 1 in 2nd place value 
 			mov r6, #0xfffffff0		@ Put all ones except for last byte into r6
-			and r1, r6			@ Bit mask so everything stays the same and just clears that farthest byte
+			and r1, r6				@ Bit mask so everything stays the same and just clears that farthest byte
 
 	@ Is second digit a 10? 
 	mov r6, r1
@@ -350,7 +348,7 @@ _update_time:
 	and r6, #0x600000
 	cmp r6, #0x600000
     beq _add_hour
-	b _update_done      @@@ XX instead of finishing, reset the system
+	b _update_done
 
 
         _add_hour: @ Add hour and reset the display
@@ -363,41 +361,39 @@ _update_time:
             str r12, [r8]           @ Store the (0-23) value to TOTAL_HOURS address
 			bge _set_decrement_brightness  @@@ XX uncomment later
 	        b _write_display 		@ Write this new cleared time onto the display 
-            @ Check if the hour count is greater than or equal to 24 (bc we have an add 12 hours button)
-            
-              
-
+         
 		_update_done:
 			pop {r4 - r11,lr} 		@ Pop back the original registers
 			bx lr 
 
+@ Takes the traffic time from that day and averages it against the other light to 
+@ see if it is a high or low traffic area
 _set_decrement_brightness:
-	push {r4 - r11, lr} 		@ Push registers to the stack  
+	push {r4 - r11, lr}				@ Push registers to the stack  
 
-    ldr r4, =ACTIVE_TIME1          @ Loads the total active time for the day for light 1
-    ldr r5, =ACTIVE_TIME2          @ Loads the total active time for the day for light 2
+    ldr r4, =ACTIVE_TIME1			@ Loads the total active time for the day for light 1
+    ldr r5, =ACTIVE_TIME2			@ Loads the total active time for the day for light 2
 
-    add r6, r4, r5        @ Add r4 and r5 then put in r6
-	lsr r7, r2, #1       @ Unsigned divide r2 by 2, store result in r7
-    cmp r4, r7            @ Compare r1 and r2
-    movlt r4, #0        @ if r5 < r7 (lower), set r0 to 0
-    movge r4, #1         @ if r5 >= r7 (higher or equal), set r0 to 1 
-    cmp r5, r7            @ Compare r1 and r2
-    movlt r5, #0        @ if r5 < r7 (lower), set r0 to 0
-    movge r5, #1         @ if r5 >= r7 (higher or equal), set r0 to 1 
-	ldr r10, LIGHT1_TRAFFIC
-	str r4, [r10]
-	ldr r11, LIGHT2_TRAFFIC
-	str r5, [r11]
-	mov r7, #0
-	mov r8, #0
+    add r6, r4, r5					@ Add r4 and r5 then put in r6
+	lsr r7, r2, #1					@ Unsigned divide r2 by 2, store result in r7
+    cmp r4, r7						@ Compare r1 and r2
+    movlt r4, #0					@ If r5 < r7 (lower), set r0 to 0
+    movge r4, #1					@ If r5 >= r7 (higher or equal), set r0 to 1 
+    cmp r5, r7						@ Compare r1 and r2
+    movlt r5, #0					@ If r5 < r7 (lower), set r0 to 0
+    movge r5, #1					@ If r5 >= r7 (higher or equal), set r0 to 1 
+	ldr r10, LIGHT1_TRAFFIC			@ Load LIGHT1_TRAFFIC address into r10
+	str r4, [r10]					@ Write the traffic status (0 or 1) to LIGHT1_TRAFFIC
+	ldr r11, LIGHT2_TRAFFIC			@ Load LIGHT1_TRAFFIC address into r11
+	str r5, [r11]					@ Write the traffic status (0 or 1) to LIGHT2_TRAFFIC
+	mov r7, #0						@ Set both of the active time counting registers to zero
+	mov r8, #0						@ This way we are resetting the total time for each new day
 
-	pop {r4 - r11,lr} 		@ Pop back the original registers
+	pop {r4 - r11,lr} 				@ Pop back the original registers
 	bx lr 
 
 
-@ to display hex (for places 1 and 2 - miliseconds)
-
+@ To display hex (for places 1 and 2 - miliseconds)
 _display_hex_21: 					
 
 	push {r4 - r11, lr}
@@ -433,7 +429,7 @@ _display_hex_21:
 	pop {r4 - r11, lr}   						@ Popping original registers back off before linking back to main
 	bx lr
 
-@ to display hex (for places 3 and 4 - seconds)
+@ To display hex (for places 3 and 4 - seconds)
 
 _display_hex_43:
 	push {r4 - r11, lr}
@@ -452,7 +448,7 @@ _display_hex_43:
 
     ldr r5, =HEX_TABLE
 	mov r4, r5 						@ Store Hex table in r4
-	ldrb r6, [r4, r1]   					@ Storing the value r4 shifted by r1 to access right digit, and storing in r3
+	ldrb r6, [r4, r1]   			@ Storing the value r4 shifted by r1 to access right digit, and storing in r3
 	lsl r6, #16						@ Moving over 4 bytes to get to the 4 and 3 portion of this address
 	lsleq r6, #8						@ If it's equal to 1 (ie if it's the left digit) we move over two more bytes to get to the appropriate spot
 
@@ -472,7 +468,7 @@ _display_hex_43:
 	pop {r4 - r11, lr}   						@ Popping original registers back off before linking back to main
 	bx lr
 
-@ to display hex (for places 5 and 6 - minutes)
+@ To display hex (for places 5 and 6 - minutes)
 
 _display_hex_65: 					
 
