@@ -3,8 +3,6 @@
 /* -----Data Values----- */
 /* --------------------- */
 .data
-@ This is a look up table for writing to the parallel port to display how many lights should be lit up
-LOOKUP_TABLE:  .word 0b0000000000000000, 0b0000000000000001, 0b0000000000000001, 0b0000000000000011, 0b0000000000000111, 0b0000000000001111, 0b0000000000001111,  0b0000000000011111, 0b0000000000111111, 0b0000000001111111, 0b0000000001111111 , 0b0000000011111111, 0b0000000011111111, 0b0000000111111111, 0b0000001111111111, 0b0000001111111111 ,0b0000001111111111 
 @ This is an array of bytes corresponding to numbers of the 7-segment display
 HEX_TABLE:	.byte 0b00111111, 0b00000110, 0b01011011, 0b01001111, 0b01100110, 0b01101101, 0b01111101, 0b00000111, 0b01111111, 0b01100111, 0b01110111, 0b01111100, 0b00111001, 0b01011110, 0b01111001, 0b01110001
 
@@ -76,6 +74,7 @@ _start:
 	mov r1, #1			    @initial timer state is zero
 	lsl r1, #1			
 	str r1, [r8, #8]		@putting into the continue bit of timer
+	b _main
 
 
 
@@ -220,7 +219,7 @@ _read_brightness:
 	@READ POTENTIOMETER
 	@ set r2 to be one and lsl by 15 - to use for bitmasking with the update bit 
 	mov r11, #1
-	lsl r11, #15		@ ** for simulator do 16 **
+	lsl r11, #16		@ ** for simulator do 16 **
 
 	adc_loop:
 	ldr r4, [r10]		@ address for channel 0 
