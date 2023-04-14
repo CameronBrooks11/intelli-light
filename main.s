@@ -1,4 +1,4 @@
-.global start
+.global _start
 /* --------------------- */
 /* -----Data Values----- */
 /* --------------------- */
@@ -17,10 +17,7 @@ LOOK_UP_TABLE1:	.word 	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x
 LOOK_UP_TABLE2:  .word 0b0000000000, 0b0000000001, 0b0000000011, 0b0000000111, 0b0000001111, 0b0000011111, 0b0000111111, 0b0001111111, 0b0011111111, 0b0111111111, 0b1111111111
 
 TOTAL_HOURS: .word 0x00000017
-PERSON1: .byte 0b00000000
-PERSON2: .byte 0b00000000
-LIGHT1_TRAFFIC: .byte 0b00000000
-LIGHT2_TRAFFIC: .byte 0b00000000
+
 ACTIVE_TIME1:	.word   0x00000000
 ACTIVE_TIME2:	.word   0x00000000
 .text
@@ -38,7 +35,6 @@ UPDATES [Tues., April 11]:
 			r12 will always pull from memory counter...
 */
 
-.text
 
 /* ----------------------- */
 /* -----Initialization---- */
@@ -148,7 +144,7 @@ _wait_for_timer:
 	mov r5, r1			@eventually move r1 output of branch back into r5 to update time 
 	mov r4, r5			@put the current time into the write to display register 
 	bl _read_brightness
-    bl _person_detect
+    bl _check_switch
     bl _write_lights
 
 
@@ -242,11 +238,6 @@ _read_brightness:
 	ldr r7, [r2, r4]			    @ take the corresponding value from look up table and place it in r1
 
 	pop {r4 - r6, r8 - r11, lr}   				@ popping original registers back off before returning to main loop
-	bx lr
-
-_person_detect:
-
-	pop {r4 - r11, lr}   				@ popping original registers back off before returning to main loop
 	bx lr
 
  _write_lights:
@@ -547,6 +538,9 @@ HEX6_HEX5_BASE:		.word	0xFF200030
 SW_BASE:		    .word	0xFF200040
 KEY_BASE:		    .word   0xff200050
 A9_TIMER: 		    .word   0xfffec600
-TRAFFIC_STATUS:     .byte   0b00111111
+//TRAFFIC_STATUS:     .byte   0b00111111
 ADC_BASE: 	.word	0xFF204000
 GPIO:       .word   0xFF200060
+PERSON1: .word
+LIGHT1_TRAFFIC: .word
+LIGHT2_TRAFFIC: .word
