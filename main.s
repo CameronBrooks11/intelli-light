@@ -514,8 +514,8 @@ HEX6_HEX5_BASE:		.word	0xFF200030
 SW_BASE:		    .word	0xFF200040
 KEY_BASE:		    .word   0xff200050
 A9_TIMER: 		    .word   0xfffec600
-ADC_BASE: 	.word	0xFF204000
-GPIO:       .word   0xFF200060
-PERSON1: .word
-LIGHT1_TRAFFIC: .word
-LIGHT2_TRAFFIC: .word
+ADC_BASE: 			.word	0xFF204000
+GPIO:       		.word   0xFF200060
+PERSON1: 			.word
+LIGHT1_TRAFFIC: 	.word
+LIGHT2_TRAFFIC:		.word
