@@ -412,8 +412,10 @@ _set_decrement_brightness:
     cmp r5, r7            // compare r1 and r2
     movlt r5, #0        // if r5 < r7 (lower), set r0 to 0
     movge r5, #1         // if r5 >= r7 (higher or equal), set r0 to 1 
-	str r4, [LIGHT1_TRAFFIC]
-	str r5, [LIGHT2_TRAFFIC]
+	ldr r10, LIGHT1_TRAFFIC
+	str r4, [r10]
+	ldr r11, LIGHT2_TRAFFIC
+	str r5, [r11]
 	mov r7, #0
 	mov r8, #0
 
