@@ -194,7 +194,8 @@ _check_switch:
 
 	ldr r4, SW_BASE         @ take address for switches 
 	ldr r10, [r4]           @ load value from switch 1 into r10
-	str r10, [PERSON1]
+	ldr r5, =PERSON1
+	str r10, [r5]
 	cmp r10, #1
 	beq _add_to_active
 	pop {r4 - r11, lr}   				@ popping original registers back off before returning to main loop
@@ -203,9 +204,10 @@ _check_switch:
 _add_to_active:
     push {r4 - r11, lr}
 
-	mov r4, [ACTIVE_TIME1]
+	ldr r5, =ACTIVE_TIME1
+	str r4, [r5]
 	add r4, r4, #200
-	str r4, [ACTIVE_TIME1]
+	str r4, [r5]
 
 	pop {r4 - r11, lr}   				@ popping original registers back off before returning to main loop
 	bx lr
@@ -262,9 +264,11 @@ _person_detect:
 
 	mov r8, r7         @ put highbright value into r2 - this is the value we'll write to LEDs
 
-	mov r10, [PERSON1]
+	ldr r5, PERSON1
+	ldr r10, [r5]
 	cmp r10, #0             @ is person = 0? 
 	subeq r8, r12           @ if no person (0), decrement brightness value 
+
 
 	ldr r3, =LOOK_UP_TABLE2     @ put address of lookup table into register 
 	lsl r2, #2 					@ account for word offset 
